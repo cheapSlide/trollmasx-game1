@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>$TROLLMASX - Flappy Trollmas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #7f1d1d, #14532d, #1e3a8a);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+        }
+
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: white;
+            font-size: 1em;
+            animation: fall linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(220, 38, 38, 0.3);
+            padding: 28px;
+            max-width: 450px;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                max-height: 98vh;
+            }
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: clamp(28px, 9vw, 48px);
+            color: #dc2626;
+            text-align: center;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+            word-break: break-word;
+            line-height: 1.1;
+        }
+
+        @media (max-width: 380px) {
+            h1 {
+                font-size: 32px;
+                letter-spacing: -1px;
+            }
+        }
+
+        h2 {
+            font-size: clamp(18px, 5vw, 24px);
+            color: #16a34a;
+            text-align: center;
+            margin-bottom: 16px;
+            text-shadow: 0 0 10px rgba(22, 163, 74, 0.5);
+        }
+
+        .welcome-text {
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .emoji {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .btn-primary {
+            background: #dc2626;
+            color: white;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn-primary:active {
+            background: #b91c1c;
+            transform: scale(0.98);
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #16a34a;
+            color: white;
+            box-shadow: 0 0 20px rgba(22, 163, 74, 0.4);
+        }
+
+        .btn-secondary:active {
+            background: #15803d;
+            transform: scale(0.98);
+        }
+
+        .btn-tertiary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-tertiary:active {
+            background: #4b5563;
+            transform: scale(0.98);
+        }
+
+        .error-text {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 0 4px;
+            align-items: center;
+        }
+
+        .score-display {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .score-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #16a34a;
+        }
+
+        .player-name {
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .player-name span {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            background: #e5e7eb;
+            cursor: pointer;
+            display: block;
+            touch-action: none;
+            box-shadow: 0 0 20px rgba(22, 163, 74, 0.3);
+        }
+
+        .game-overlay {
+            position: relative;
+        }
+
+        .overlay-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .overlay-text {
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .overlay-text h3 {
+            font-size: clamp(24px, 6vw, 32px);
+            margin-bottom: 12px;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            background: #f9fafb;
+            min-height: 50px;
+        }
+
+        .leaderboard-entry.gold {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+        }
+
+        .leaderboard-entry.silver {
+            background: #f3f4f6;
+            border: 2px solid #9ca3af;
+        }
+
+        .leaderboard-entry.bronze {
+            background: #fed7aa;
+            border: 2px solid #fb923c;
+        }
+
+        .leaderboard-entry.current-player {
+            background: #dbeafe;
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .leaderboard-rank {
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .leaderboard-name {
+            font-weight: 600;
+            font-size: 14px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .leaderboard-score {
+            font-size: 18px;
+            font-weight: bold;
+            color: #16a34a;
+            margin-left: 8px;
+        }
+
+        .leaderboard-stats {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .empty-leaderboard {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        .santa-image {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+            display: block;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .new-high-score {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 6px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .filter-tab {
+            flex: 1;
+            padding: 8px 4px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .filter-tab.active {
+            background: #dc2626;
+            color: white;
+        }
+
+        .troll-face {
+            width: 150px;
+            height: 150px;
+            animation: trollShake 0.5s infinite;
+            display: inline-block;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.6);
+            object-fit: cover;
+            margin-bottom: 8px;
+        }
+
+        @keyframes trollShake {
+            0%, 100% { transform: rotate(-3deg) scale(1); }
+            50% { transform: rotate(3deg) scale(1.03); }
+        }
+    </style>
+</head>
+<body>
+    <div id="snowContainer"></div>
+
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="screen active">
+            <img src="trollmas.png" class="santa-image" alt="Trollmas" onerror="this.style.display='none'">
+            
+            <h1>$TROLLMASX</h1>
+            <h2>Flappy Trollmas</h2>
+            <p class="welcome-text">
+                🎄 Welcome to the ultimate holiday flying challenge! Guide Trollmas through the pipes, collect golden gifts, avoid coal, and compete for the top spot! 🎁
+            </p>
+
+            <form id="usernameForm">
+                <label for="username">Enter Your Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    placeholder="Your name..." 
+                    maxlength="20"
+                    autocomplete="off"
+                >
+                <p id="usernameError" class="error-text" style="display:none;">Username must be at least 2 characters</p>
+                
+                <button type="submit" class="btn-primary" id="startBtn">
+                    🎮 Start Playing
+                </button>
+            </form>
+
+            <button class="btn-secondary" onclick="showLeaderboard()">
+                🏆 View Leaderboard
+            </button>
+
+            <div class="instructions">
+                <p>🎮 Tap to flap | 🎁 Collect gifts | 🪨 Avoid coal | 🎯 Dodge pipes</p>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <h1>$TROLLMASX</h1>
+            <p class="player-name">Playing as: <span id="currentPlayerName"></span></p>
+
+            <div class="game-info">
+                <div class="score-display">
+                    <p class="score-label">Score</p>
+                    <p class="score-value" id="currentScore">0</p>
+                </div>
+                <div class="score-display">
+                    <p class="score-label">Best</p>
+                    <p class="score-value" id="personalBest" style="color: #dc2626;">0</p>
+                </div>
+                <button onclick="showLeaderboard()" style="width: auto; padding: 8px 12px; background: #fbbf24;">
+                    🏆
+                </button>
+            </div>
+
+            <div class="game-overlay">
+                <canvas id="gameCanvas" width="400" height="600"></canvas>
+                
+                <div id="startOverlay" class="overlay-content">
+                    <div class="overlay-text">
+                        <h3>🎄 Ready to Fly? 🎄</h3>
+                        <p style="margin-bottom: 12px; font-size: 14px;">Tap to start</p>
+                        <button class="btn-primary" onclick="startGame()">START GAME</button>
+                    </div>
+                </div>
+
+                <div id="gameOverOverlay" class="overlay-content" style="display: none;">
+                    <div class="overlay-text">
+                        <img src="trollmas.png" 
+                             alt="Trollmas" 
+                             class="troll-face" 
+                             id="trollFace">
+                        
+                        <div id="newHighScoreBanner" style="display: none;" class="new-high-score">
+                            🎉 NEW PERSONAL BEST! 🎉
+                        </div>
+                        <h3>Game Over!</h3>
+                        <p style="font-size: 18px; margin-bottom: 16px;">Score: <span id="finalScore">0</span></p>
+                        <p id="rankMessage" style="font-size: 14px; margin-bottom: 12px; color: #fbbf24;"></p>
+                        <button class="btn-secondary" onclick="startGame()">PLAY AGAIN</button>
+                        <button class="btn-primary" onclick="showLeaderboard()" style="margin-top: 6px;">VIEW LEADERBOARD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <p>Tap to flap</p>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboardScreen" class="screen">
+            <div class="emoji">🏆</div>
+            <h1 style="font-size: clamp(28px, 7vw, 36px);">Leaderboard</h1>
+            <p class="welcome-text">Global Rankings</p>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="setLeaderboardFilter('all')">All Time</button>
+                <button class="filter-tab" onclick="setLeaderboardFilter('today')">Today</button>
+                <button class="filter-tab" onclick="setLeaderboardFilter('week')">This Week</button>
+            </div>
+
+            <div id="leaderboardList" class="loading" style="max-height: 320px; overflow-y: auto; margin-bottom: 12px;">Loading...</div>
+
+            <button class="btn-primary" onclick="backFromLeaderboard()">
+                Back to Game
+            </button>
+            <button class="btn-tertiary" onclick="changePlayer()">
+                Change Player
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, set, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAD6Au4YUwtbWbIhDTPLgR8LC4b4xd1-Yk",
+            authDomain: "trollmasx-game.firebaseapp.com",
+            databaseURL: "https://trollmasx-game-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "trollmasx-game",
+            storageBucket: "trollmasx-game.firebasestorage.app",
+            messagingSenderId: "679649490810",
+            appId: "1:679649490810:web:eb1cd8d3a2328f6eddc8c3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.firebaseDB = database;
+        window.firebaseRef = ref;
+        window.firebasePush = push;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebaseInitialized = true;
+    </script>
+
+    <script>
+        // Optimized snowflakes for mobile
+        function createSnowflakes() {
+            const container = document.getElementById('snowContainer');
+            const count = window.innerWidth < 768 ? 15 : 40;
+            for (let i = 0; i < count; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.textContent = '❄';
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                snowflake.style.animationDelay = Math.random() * 5 + 's';
+                snowflake.style.opacity = Math.random() * 0.5 + 0.3;
+                snowflake.style.fontSize = (Math.random() * 0.4 + 0.7) + 'em';
+                container.appendChild(snowflake);
+            }
+        }
+        createSnowflakes();
+
+        function waitForFirebase(callback) {
+            if (window.firebaseInitialized) {
+                callback();
+            } else {
+                setTimeout(() => waitForFirebase(callback), 100);
+            }
+        }
+
+        let currentPlayer = '';
+        let currentPlayerId = '';
+        let gameState = 'start';
+        let score = 0;
+        let leaderboard = [];
+        let personalBest = 0;
+        let currentFilter = 'all';
+        
+        const game = {
+            bird: { x: 80, y: 250, velocity: 0, size: 35 },
+            pipes: [],
+            powerups: [],
+            gravity: 0.45,
+            jumpStrength: -8,
+            pipeGap: 190,
+            pipeWidth: 55,
+            pipeSpeed: 2.2,
+            frameCount: 0,
+            lastFrameTime: 0
+        };
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+        let animationId = null;
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        document.getElementById('usernameForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            
+            if (username.length >= 2) {
+                currentPlayer = username;
+                currentPlayerId = generatePlayerId(username);
+                document.getElementById('currentPlayerName').textContent = username;
+                loadPlayerStats();
+                showScreen('gameScreen');
+                document.getElementById('usernameError').style.display = 'none';
+            } else {
+                document.getElementById('usernameError').style.display = 'block';
+            }
+        });
+
+        document.getElementById('username').addEventListener('input', (e) => {
+            document.getElementById('startBtn').disabled = e.target.value.trim().length < 2;
+        });
+
+        function generatePlayerId(username) {
+            return username.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Date.now();
+        }
+
+        async function loadPlayerStats() {
+            try {
+                const playerScoresRef = window.firebaseRef(window.firebaseDB, `players/${currentPlayer}/scores`);
+                const snapshot = await window.firebaseGet(playerScoresRef);
+                
+                if (snapshot.exists()) {
+                    const scores = Object.values(snapshot.val());
+                    personalBest = Math.max(...scores.map(s => s.score));
+                    document.getElementById('personalBest').textContent = personalBest;
+                }
+            } catch (error) {}
+        }
+
+        async function saveScore(playerName, playerScore) {
+            if (!window.firebaseInitialized) {
+                saveScoreLocally(playerName, playerScore);
+                return;
+            }
+
+            try {
+                const timestamp = Date.now();
+                const scoreData = {
+                    username: playerName,
+                    score: playerScore,
+                    timestamp: timestamp,
+                    date: new Date(timestamp).toISOString()
+                };
+
+                const leaderboardRef = window.firebaseRef(window.firebaseDB, 'leaderboard');
+                const newScoreRef = window.firebasePush(leaderboardRef);
+                await window.firebaseSet(newScoreRef, scoreData);
+
+                const playerScoreRef = window.firebaseRef(window.firebaseDB, `players/${playerName}/scores/${timestamp}`);
+                await window.firebaseSet(playerScoreRef, scoreData);
+
+                const playerRef = window.firebaseRef(window.firebaseDB, `players/${playerName}`);
+                const playerSnapshot = await window.firebaseGet(playerRef);
+                const playerData = playerSnapshot.exists() ? playerSnapshot.val() : {};
+                
+                const stats = {
+                    totalGames: (playerData.totalGames || 0) + 1,
+                    highScore: Math.max(playerData.highScore || 0, playerScore),
+                    lastPlayed: timestamp
+                };
+
+                await window.firebaseSet(playerRef, { ...playerData, ...stats });
+                await loadLeaderboard();
+            } catch (error) {
+                saveScoreLocally(playerName, playerScore);
+            }
+        }
+
+        function saveScoreLocally(playerName, playerScore) {
+            let localLeaderboard = JSON.parse(localStorage.getItem('trollmasx_leaderboard') || '[]');
+            localLeaderboard.push({
+                username: playerName,
+                score: playerScore,
+                timestamp: Date.now()
+            });
+            localStorage.setItem('trollmasx_leaderboard', JSON.stringify(localLeaderboard));
+        }
+
+        async function loadLeaderboard() {
+            if (!window.firebaseInitialized) {
+                loadLeaderboardLocally();
+                return;
+            }
+
+            try {
+                const leaderboardRef = window.firebaseRef(window.firebaseDB, 'leaderboard');
+                const snapshot = await window.firebaseGet(leaderboardRef);
+                
+                if (snapshot.exists()) {
+                    let scores = Object.entries(snapshot.val()).map(([key, value]) => ({
+                        id: key,
+                        ...value
+                    }));
+
+                    const now = Date.now();
+                    const oneDay = 24 * 60 * 60 * 1000;
+                    const oneWeek = 7 * oneDay;
+
+                    if (currentFilter === 'today') {
+                        scores = scores.filter(s => now - s.timestamp < oneDay);
+                    } else if (currentFilter === 'week') {
+                        scores = scores.filter(s => now - s.timestamp < oneWeek);
+                    }
+
+                    const playerBestScores = {};
+                    scores.forEach(score => {
+                        if (!playerBestScores[score.username] || playerBestScores[score.username].score < score.score) {
+                            playerBestScores[score.username] = score;
+                        }
+                    });
+
+                    leaderboard = Object.values(playerBestScores)
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 50);
+
+                    displayLeaderboard();
+                } else {
+                    leaderboard = [];
+                    displayLeaderboard();
+                }
+            } catch (error) {
+                loadLeaderboardLocally();
+            }
+        }
+
+        function loadLeaderboardLocally() {
+            const saved = localStorage.getItem('trollmasx_leaderboard');
+            leaderboard = saved ? JSON.parse(saved) : [];
+            
+            const playerBestScores = {};
+            leaderboard.forEach(score => {
+                if (!playerBestScores[score.username] || playerBestScores[score.username].score < score.score) {
+                    playerBestScores[score.username] = score;
+                }
+            });
+
+            leaderboard = Object.values(playerBestScores)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 50);
+            
+            displayLeaderboard();
+        }
+
+        function setLeaderboardFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            loadLeaderboard();
+        }
+
+        function displayLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            
+            if (leaderboard.length === 0) {
+                list.innerHTML = '<div class="empty-leaderboard"><p>No scores yet!</p><p style="font-size: 13px; margin-top: 8px;">Be the first!</p></div>';
+                return;
+            }
+
+            list.innerHTML = leaderboard.map((entry, i) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const classes = ['gold', 'silver', 'bronze'];
+                const rank = i < 3 ? medals[i] : `${i + 1}.`;
+                let className = i < 3 ? classes[i] : '';
+                
+                if (entry.username === currentPlayer) {
+                    className += ' current-player';
+                }
+
+                const timeAgo = getTimeAgo(entry.timestamp);
+                
+                let displayName = entry.username;
+                if (displayName.length > 12) {
+                    displayName = displayName.substring(0, 12) + '...';
+                }
+                
+                return `
+                    <div class="leaderboard-entry ${className}">
+                        <span class="leaderboard-rank">${rank}</span>
+                        <div class="leaderboard-name">
+                            ${displayName}${entry.username === currentPlayer ? ' (You)' : ''}
+                            <div class="leaderboard-stats">${timeAgo}</div>
+                        </div>
+                        <span class="leaderboard-score">${entry.score}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+            return new Date(timestamp).toLocaleDateString();
+        }
+
+        function showLeaderboard() {
+            loadLeaderboard();
+            showScreen('leaderboardScreen');
+        }
+
+        function backFromLeaderboard() {
+            if (currentPlayer) {
+                showScreen('gameScreen');
+            } else {
+                showScreen('welcomeScreen');
+            }
+        }
+
+        function changePlayer() {
+            currentPlayer = '';
+            currentPlayerId = '';
+            personalBest = 0;
+            showScreen('welcomeScreen');
+            document.getElementById('username').value = '';
+        }
+
+        function createPipe() {
+            const minHeight = 60;
+            const maxHeight = canvas.height - game.pipeGap - 80;
+            const height = Math.random() * (maxHeight - minHeight) + minHeight;
+            
+            return {
+                x: canvas.width,
+                topHeight: height,
+                bottomY: height + game.pipeGap,
+                scored: false
+            };
+        }
+
+        function createPowerup(type) {
+            const minY = 100;
+            const maxY = canvas.height - 100;
+            const y = Math.random() * (maxY - minY) + minY;
+            
+            return {
+                x: canvas.width,
+                y: y,
+                type: type,
+                size: 25,
+                collected: false
+            };
+        }
+
+        function drawBird() {
+            const { x, y, size } = game.bird;
+            
+            ctx.save();
+            ctx.translate(x, y);
+            
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#dc2626';
+            
+            ctx.fillStyle = '#DC2626';
+            ctx.beginPath();
+            ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#DC2626';
+            ctx.beginPath();
+            ctx.moveTo(-size / 2, -size / 3);
+            ctx.lineTo(0, -size);
+            ctx.lineTo(size / 2, -size / 3);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(0, -size, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(-size / 2, -size / 3, size, 3);
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-6, -3, 2, 0, Math.PI * 2);
+            ctx.arc(6, -3, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawPipe(pipe) {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#16a34a';
+            
+            ctx.fillStyle = '#16A34A';
+            ctx.fillRect(pipe.x, 0, game.pipeWidth, pipe.topHeight);
+            
+            ctx.fillStyle = '#15803D';
+            ctx.fillRect(pipe.x - 4, pipe.topHeight - 12, game.pipeWidth + 8, 12);
+            
+            ctx.fillStyle = '#16A34A';
+            ctx.fillRect(pipe.x, pipe.bottomY, game.pipeWidth, canvas.height - pipe.bottomY);
+            
+            ctx.fillStyle = '#15803D';
+            ctx.fillRect(pipe.x - 4, pipe.bottomY, game.pipeWidth + 8, 12);
+            
+            ctx.shadowBlur = 0;
+        }
+
+        function drawPowerup(powerup) {
+            ctx.save();
+            ctx.font = `${powerup.size}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = powerup.type === 'gift' ? '#fbbf24' : '#000';
+            
+            if (powerup.type === 'gift') {
+                ctx.fillText('🎁', powerup.x, powerup.y);
+            } else {
+                ctx.fillText('🪨', powerup.x, powerup.y);
+            }
+            
+            ctx.restore();
+        }
+
+        function checkCollision() {
+            const { bird, pipes, pipeWidth } = game;
+            
+            if (bird.y + bird.size / 2 > canvas.height || bird.y - bird.size / 2 < 0) {
+                return true;
+            }
+            
+            for (let pipe of pipes) {
+                if (bird.x + bird.size / 2 > pipe.x && bird.x - bird.size / 2 < pipe.x + pipeWidth) {
+                    if (bird.y - bird.size / 2 < pipe.topHeight || bird.y + bird.size / 2 > pipe.bottomY) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+
+        function checkPowerupCollision() {
+            const { bird, powerups } = game;
+            
+            for (let powerup of powerups) {
+                if (!powerup.collected) {
+                    const dx = bird.x - powerup.x;
+                    const dy = bird.y - powerup.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < bird.size / 2 + powerup.size / 2) {
+                        powerup.collected = true;
+                        
+                        if (powerup.type === 'gift') {
+                            score += 5;
+                        } else if (powerup.type === 'coal') {
+                            score = Math.max(0, score - 3);
+                        }
+                        
+                        document.getElementById('currentScore').textContent = score;
+                    }
+                }
+            }
+        }
+
+        function gameLoop(currentTime) {
+            if (gameState !== 'playing') return;
+            
+            // Frame throttling for mobile performance
+            if (currentTime - game.lastFrameTime < 16) {
+                animationId = requestAnimationFrame(gameLoop);
+                return;
+            }
+            
+            game.lastFrameTime = currentTime;
+            
+            // Simple sky background
+            ctx.fillStyle = '#0c4a6e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Minimal stars
+            ctx.fillStyle = 'white';
+            for (let i = 0; i < 25; i++) {
+                const x = (i * 123.456) % canvas.width;
+                const y = (i * 78.91) % canvas.height;
+                ctx.fillRect(x, y, 2, 2);
+            }
+            
+            game.bird.velocity += game.gravity;
+            game.bird.y += game.bird.velocity;
+            
+            game.frameCount++;
+            
+            if (game.frameCount % 90 === 0) {
+                game.pipes.push(createPipe());
+            }
+            
+            if (game.frameCount % 250 === 0) {
+                const type = Math.random() > 0.35 ? 'gift' : 'coal';
+                game.powerups.push(createPowerup(type));
+            }
+            
+            game.pipes = game.pipes.filter(pipe => {
+                pipe.x -= game.pipeSpeed;
+                
+                if (!pipe.scored && pipe.x + game.pipeWidth < game.bird.x) {
+                    pipe.scored = true;
+                    score++;
+                    document.getElementById('currentScore').textContent = score;
+                }
+                
+                return pipe.x > -game.pipeWidth;
+            });
+            
+            game.powerups = game.powerups.filter(powerup => {
+                powerup.x -= game.pipeSpeed;
+                return powerup.x > -powerup.size;
+            });
+            
+            game.pipes.forEach(drawPipe);
+            game.powerups.forEach(drawPowerup);
+            drawBird();
+            
+            checkPowerupCollision();
+            
+            if (checkCollision()) {
+                gameState = 'gameOver';
+                handleGameOver();
+                return;
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        async function handleGameOver() {
+            document.getElementById('startOverlay').style.display = 'none';
+            document.getElementById('gameOverOverlay').style.display = 'flex';
+            document.getElementById('finalScore').textContent = score;
+
+            if (score > personalBest) {
+                personalBest = score;
+                document.getElementById('personalBest').textContent = personalBest;
+                document.getElementById('newHighScoreBanner').style.display = 'block';
+            } else {
+                document.getElementById('newHighScoreBanner').style.display = 'none';
+            }
+
+            await saveScore(currentPlayer, score);
+            await loadLeaderboard();
+            
+            const rank = leaderboard.findIndex(entry => entry.username === currentPlayer) + 1;
+            const rankMsg = document.getElementById('rankMessage');
+            
+            if (rank > 0) {
+                if (rank === 1) {
+                    rankMsg.textContent = '👑 You\'re #1 on the leaderboard!';
+                } else if (rank <= 3) {
+                    rankMsg.textContent = `🏆 You\'re #${rank} on the leaderboard!`;
+                } else if (rank <= 10) {
+                    rankMsg.textContent = `⭐ You\'re #${rank} - Top 10!`;
+                } else {
+                    rankMsg.textContent = `📊 Global Rank: #${rank}`;
+                }
+                rankMsg.style.display = 'block';
+            } else {
+                rankMsg.style.display = 'none';
+            }
+        }
+
+        function startGame() {
+            game.bird = { x: 80, y: 250, velocity: 0, size: 35 };
+            game.pipes = [];
+            game.powerups = [];
+            game.frameCount = 0;
+            game.lastFrameTime = performance.now();
+            score = 0;
+            document.getElementById('currentScore').textContent = '0';
+            
+            gameState = 'playing';
+            document.getElementById('startOverlay').style.display = 'none';
+            document.getElementById('gameOverOverlay').style.display = 'none';
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function jump() {
+            if (gameState === 'playing') {
+                game.bird.velocity = game.jumpStrength;
+            }
+        }
+
+        canvas.addEventListener('click', () => {
+            if (gameState === 'start' || gameState === 'gameOver') {
+                startGame();
+            } else {
+                jump();
+            }
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameState === 'start' || gameState === 'gameOver') {
+                startGame();
+            } else {
+                jump();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                const activeScreen = document.querySelector('.screen.active');
+                if (activeScreen && activeScreen.id === 'gameScreen') {
+                    if (gameState === 'start' || gameState === 'gameOver') {
+                        startGame();
+                    } else {
+                        jump();
+                    }
+                }
+            }
+        });
+
+        window.showLeaderboard = showLeaderboard;
+        window.backFromLeaderboard = backFromLeaderboard;
+        window.changePlayer = changePlayer;
+        window.startGame = startGame;
+        window.setLeaderboardFilter = setLeaderboardFilter;
+
+        waitForFirebase(() => {});
+    </script>
+</body>
+</html>
